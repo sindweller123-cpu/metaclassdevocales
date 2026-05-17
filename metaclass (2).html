@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MetAClass · Aprender las vocales</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600;1,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body, #root { height: 100%; margin: 0; }
+    body { background: #F5EFE4; overflow-x: hidden; }
+    .font-display { font-family: 'Fraunces', Georgia, serif; }
+    .font-body    { font-family: 'Inter', system-ui, sans-serif; }
+    .font-mono    { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; }
+
+    @keyframes float-in {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes pop-in {
+      0%   { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+      60%  { transform: scale(1.1) rotate(2deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0); }
+    }
+    @keyframes pulse-soft { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+    @keyframes drift-up {
+      0%   { transform: translateY(20px); opacity: 0; }
+      20%  { opacity: 1; }
+      100% { transform: translateY(-120px); opacity: 0; }
+    }
+    @keyframes shimmer { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+    @keyframes wiggle {
+      0%,100% { transform: rotate(-3deg); }
+      50%     { transform: rotate(3deg); }
+    }
+    @keyframes star-burst {
+      0%   { opacity: 0; transform: scale(0.3) rotate(-30deg); }
+      60%  { transform: scale(1.2) rotate(8deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0); }
+    }
+    .animate-float-in   { animation: float-in 0.6s cubic-bezier(.2,.7,.2,1) both; }
+    .animate-pop-in     { animation: pop-in 0.7s cubic-bezier(.2,.9,.3,1.2) both; }
+    .animate-pulse-soft { animation: pulse-soft 2.5s ease-in-out infinite; }
+    .animate-shimmer    { animation: shimmer 2s ease-in-out infinite; }
+    .animate-wiggle     { animation: wiggle 0.6s ease-in-out infinite; }
+    .animate-star-burst { animation: star-burst 0.7s cubic-bezier(.2,.9,.3,1.2) both; }
+    .drift              { animation: drift-up 2.5s ease-out both; }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+
+    @media print {
+      .no-print { display: none !important; }
+      @page { size: A4; margin: 1cm; }
+      body { background: white !important; }
+    }
+  </style>
+</head>
+<body class="font-body">
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useRef, useEffect, useMemo } = React;
+
+    /* ===================== ICONS ===================== */
+    const Icon = ({ size = 24, children, fill = "none", ...p }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor"
+           strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>{children}</svg>
+    );
+    const Play = (p) => <Icon {...p}><polygon points="6 3 20 12 6 21 6 3" fill={p.fill || "none"} /></Icon>;
+    const Pause = (p) => <Icon {...p}><rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/></Icon>;
+    const Camera = (p) => <Icon {...p}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></Icon>;
+    const Video = (p) => <Icon {...p}><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></Icon>;
+    const StopCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6"/></Icon>;
+    const Download = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></Icon>;
+    const Printer = (p) => <Icon {...p}><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></Icon>;
+    const ChevronRight = (p) => <Icon {...p}><polyline points="9 18 15 12 9 6"/></Icon>;
+    const ChevronLeft = (p) => <Icon {...p}><polyline points="15 18 9 12 15 6"/></Icon>;
+    const Volume2 = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></Icon>;
+    const HomeIcon = (p) => <Icon {...p}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></Icon>;
+    const Star = (p) => <Icon {...p} fill={p.fill || "currentColor"}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></Icon>;
+    const RotateCcw = (p) => <Icon {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></Icon>;
+    const Gamepad = (p) => <Icon {...p}><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258C21.27 6.5 19.39 5 17.32 5Z"/></Icon>;
+    const GraduationCap = (p) => <Icon {...p}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></Icon>;
+    const BookOpen = (p) => <Icon {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></Icon>;
+    const Pencil = (p) => <Icon {...p}><path d="M21.17 6.81a1 1 0 0 0-3.98-3.99L3.84 16.17a2 2 0 0 0-.5.83L2 21.36a.5.5 0 0 0 .62.62l4.36-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/></Icon>;
+    const Target = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></Icon>;
+    const Eraser = (p) => <Icon {...p}><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></Icon>;
+    const Check = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12"/></Icon>;
+
+    /* ===================== DATA ===================== */
+    const VOWELS = [
+      { letter: "A", personality: "Alegre",      color: "#E85D2F", light: "#FBE8DE",
+        items: [{w:"Árbol",e:"🌳"},{w:"Agua",e:"💧"},{w:"Avión",e:"✈️"},{w:"Abeja",e:"🐝"},{w:"Anillo",e:"💍"},{w:"Araña",e:"🕷️"}],
+        decoration: "✿" },
+      { letter: "E", personality: "Elegante",    color: "#1E3A5F", light: "#DCE3EC",
+        items: [{w:"Elefante",e:"🐘"},{w:"Estrella",e:"⭐"},{w:"Espejo",e:"🪞"},{w:"Escuela",e:"🏫"},{w:"Escalera",e:"🪜"},{w:"Esponja",e:"🧽"}],
+        decoration: "✦" },
+      { letter: "I", personality: "Inteligente", color: "#C99A1F", light: "#F8EFD4",
+        items: [{w:"Iglú",e:"🛖"},{w:"Isla",e:"🏝️"},{w:"Imán",e:"🧲"},{w:"Iguana",e:"🦎"},{w:"Iglesia",e:"⛪"},{w:"Insecto",e:"🐛"}],
+        decoration: "❋" },
+      { letter: "O", personality: "Optimista",   color: "#4F7C5E", light: "#DCE8DF",
+        items: [{w:"Oso",e:"🐻"},{w:"Ojo",e:"👁️"},{w:"Ola",e:"🌊"},{w:"Oruga",e:"🐛"},{w:"Oveja",e:"🐑"},{w:"Olla",e:"🍲"}],
+        decoration: "✺" },
+      { letter: "U", personality: "Unida",       color: "#6B3F5C", light: "#E8DCE4",
+        items: [{w:"Uva",e:"🍇"},{w:"Uña",e:"💅"},{w:"Unicornio",e:"🦄"},{w:"Universo",e:"🪐"},{w:"Uniforme",e:"👮"},{w:"Urraca",e:"🐦"}],
+        decoration: "✤" },
+    ];
+
+    const DISTRACTORS = [
+      {w:"Pez",e:"🐠"},{w:"Casa",e:"🏠"},{w:"Sol",e:"☀️"},{w:"Luna",e:"🌙"},{w:"Flor",e:"🌸"},
+      {w:"Gato",e:"🐈"},{w:"Perro",e:"🐕"},{w:"Pan",e:"🍞"},{w:"Mano",e:"✋"},{w:"Pie",e:"🦶"},
+      {w:"Reloj",e:"⏰"},{w:"Libro",e:"📕"},{w:"Tren",e:"🚂"},{w:"Pelota",e:"⚽"},{w:"Banano",e:"🍌"},
+    ];
+
+    /* ===================== SPEECH ===================== */
+    function speak(text, opts = {}) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "es-ES";
+      u.rate = opts.rate ?? 0.9;
+      u.pitch = opts.pitch ?? 1.1;
+      const voices = window.speechSynthesis.getVoices();
+      const spanish = voices.find((v) => v.lang.startsWith("es"));
+      if (spanish) u.voice = spanish;
+      window.speechSynthesis.speak(u);
+    }
+    const stopSpeaking = () => { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
+
+    const shuffle = (arr) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+
+    /* ===================== STARS ===================== */
+    function StarBurst({ count = 3, show }) {
+      if (!show) return null;
+      return (
+        <div className="flex justify-center gap-2 pointer-events-none mt-6">
+          {Array.from({length: count}).map((_,i)=>(
+            <div key={i} className="animate-star-burst" style={{animationDelay:`${i*0.1}s`,color:"#F4C842"}}>
+              <Star size={56} fill="#F4C842" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    /* ===================== BOTTOM NAV ===================== */
+    function BottomNav({ tab, setTab }) {
+      const items = [
+        { key: "home",    label: "Inicio",   I: HomeIcon },
+        { key: "vocales", label: "Vocales",  I: BookOpen },
+        { key: "juegos",  label: "Jugar",    I: Gamepad },
+        { key: "camara",  label: "Cámara",   I: Camera },
+        { key: "docente", label: "Docente",  I: GraduationCap },
+      ];
+      return (
+        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t backdrop-blur-xl"
+             style={{ background: "rgba(245,239,228,0.92)", borderColor: "rgba(0,0,0,0.08)" }}>
+          <div className="max-w-2xl mx-auto grid grid-cols-5">
+            {items.map(({key, label, I}) => {
+              const active = tab === key;
+              return (
+                <button key={key} onClick={() => { stopSpeaking(); setTab(key); }}
+                        className="flex flex-col items-center py-3 transition-all">
+                  <div className="relative">
+                    <I size={22} style={{ color: active ? "#1A1612" : "#8A7E6B" }} />
+                    {active && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                                    style={{ background: "#1A1612" }} />}
+                  </div>
+                  <span className="text-[10px] font-mono uppercase mt-1.5"
+                        style={{ color: active ? "#1A1612" : "#8A7E6B" }}>
+                    {label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      );
+    }
+
+    /* ===================== HOME ===================== */
+    function HomeTab({ setTab, openVowel }) {
+      return (
+        <div className="min-h-full pb-24 relative">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {VOWELS.map((v, i) => (
+              <div key={v.letter} className="absolute font-display animate-pulse-soft"
+                   style={{ color: v.color, opacity: 0.06, fontSize: "20vw", fontWeight: 700, fontStyle: "italic",
+                            top: `${[5,55,8,60,32][i]}%`, left: `${[2,8,75,78,45][i]}%`,
+                            animationDelay: `${i*0.4}s`, transform: `rotate(${[-8,4,-2,6,-4][i]}deg)` }}>
+                {v.letter}
+              </div>
+            ))}
+          </div>
+
+          <div className="relative z-10 px-6 pt-12 max-w-2xl mx-auto">
+            <div className="font-mono text-xs uppercase mb-4" style={{ color: "#8A7E6B" }}>
+              MetAClass · Tomo 01
+            </div>
+            <h1 className="font-display font-bold leading-[0.9] mb-3"
+                style={{ fontSize: "clamp(2.5rem, 8vw, 4.5rem)" }}>
+              Aprender<br />
+              las <span style={{fontStyle:"italic",fontWeight:400}}>vocales</span>.
+            </h1>
+            <p className="font-display italic mb-10" style={{ color: "#5C5345", fontSize: "1.25rem" }}>
+              Tu propio mundo de sonidos y palabras.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 mb-8">
+              <button onClick={() => setTab("vocales")}
+                      className="aspect-square rounded-3xl p-5 flex flex-col justify-between text-left transition-transform hover:scale-105 active:scale-95"
+                      style={{ background: "#1A1612", color: "white" }}>
+                <BookOpen size={28} />
+                <div>
+                  <div className="font-mono text-[10px] uppercase opacity-60 mb-1">5 vocales</div>
+                  <div className="font-display text-xl font-semibold leading-tight">Explorar las vocales</div>
+                </div>
+              </button>
+              <button onClick={() => setTab("juegos")}
+                      className="aspect-square rounded-3xl p-5 flex flex-col justify-between text-left transition-transform hover:scale-105 active:scale-95"
+                      style={{ background: "#E85D2F", color: "white" }}>
+                <Gamepad size={28} />
+                <div>
+                  <div className="font-mono text-[10px] uppercase opacity-80 mb-1">2 juegos</div>
+                  <div className="font-display text-xl font-semibold leading-tight">Jugar y practicar</div>
+                </div>
+              </button>
+              <button onClick={() => setTab("camara")}
+                      className="aspect-square rounded-3xl p-5 flex flex-col justify-between text-left transition-transform hover:scale-105 active:scale-95"
+                      style={{ background: "#4F7C5E", color: "white" }}>
+                <Camera size={28} />
+                <div>
+                  <div className="font-mono text-[10px] uppercase opacity-80 mb-1">Realidad aumentada</div>
+                  <div className="font-display text-xl font-semibold leading-tight">Usar la cámara</div>
+                </div>
+              </button>
+              <button onClick={() => setTab("docente")}
+                      className="aspect-square rounded-3xl p-5 flex flex-col justify-between text-left transition-transform hover:scale-105 active:scale-95 border-2"
+                      style={{ background: "transparent", borderColor: "#1A1612", color: "#1A1612" }}>
+                <GraduationCap size={28} />
+                <div>
+                  <div className="font-mono text-[10px] uppercase opacity-60 mb-1">Modo docente</div>
+                  <div className="font-display text-xl font-semibold leading-tight">Sesión guiada</div>
+                </div>
+              </button>
+            </div>
+
+            <div className="font-mono text-xs uppercase mb-3" style={{ color: "#5C5345" }}>
+              Tu vocal favorita
+            </div>
+            <div className="flex gap-3 mb-4 overflow-x-auto no-scrollbar pb-2">
+              {VOWELS.map((v) => (
+                <button key={v.letter} onClick={() => openVowel(v.letter)}
+                        className="flex-shrink-0 w-20 h-24 rounded-2xl flex flex-col items-center justify-center transition-transform hover:scale-110 active:scale-95"
+                        style={{ background: v.light, border: `2px solid ${v.color}` }}>
+                  <div className="font-display font-bold text-4xl leading-none" style={{ color: v.color }}>{v.letter}</div>
+                  <div className="font-mono text-[9px] uppercase mt-1" style={{ color: v.color }}>{v.personality}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== VOCALES LIST ===================== */
+    function VocalesTab({ openVowel }) {
+      return (
+        <div className="min-h-full pb-24 px-6 pt-10 max-w-2xl mx-auto">
+          <div className="font-mono text-xs uppercase mb-3" style={{ color: "#8A7E6B" }}>
+            Cinco vocales · cinco mundos
+          </div>
+          <h2 className="font-display font-bold text-4xl mb-2 leading-tight">
+            ¿Cuál quieres <span style={{fontStyle:"italic",fontWeight:400}}>explorar?</span>
+          </h2>
+          <p className="text-sm mb-8" style={{ color: "#5C5345" }}>
+            Toca una vocal para conocer sus palabras, escuchar su sonido y aprender más.
+          </p>
+          <div className="space-y-4">
+            {VOWELS.map((v, i) => (
+              <button key={v.letter} onClick={() => openVowel(v.letter)}
+                      className="w-full rounded-3xl p-5 flex items-center gap-5 transition-all hover:scale-[1.02] active:scale-100 text-left animate-float-in"
+                      style={{ background: v.light, animationDelay: `${i*0.06}s` }}>
+                <div className="font-display font-bold leading-none flex-shrink-0"
+                     style={{ color: v.color, fontSize: "5rem" }}>{v.letter}</div>
+                <div className="flex-1">
+                  <div className="font-display italic text-2xl mb-1" style={{ color: v.color }}>{v.personality}</div>
+                  <div className="text-xs font-mono uppercase opacity-70" style={{ color: v.color }}>
+                    {v.items.slice(0, 3).map(i => i.w).join(" · ")}
+                  </div>
+                </div>
+                <ChevronRight size={24} style={{ color: v.color }} />
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== VOCAL DETAIL ===================== */
+    function VocalDetail({ letter, onBack, openGame }) {
+      const v = VOWELS.find(x => x.letter === letter);
+      const [idx, setIdx] = useState(0);
+      const item = v.items[idx];
+      useEffect(() => {
+        const t = setTimeout(() => speak(`${v.letter}, de ${v.personality}.`, { rate: 0.85 }), 300);
+        return () => { clearTimeout(t); stopSpeaking(); };
+      }, [letter]);
+      return (
+        <div className="min-h-full pb-28" style={{ background: v.light }}>
+          <div className="px-5 pt-5 flex items-center justify-between">
+            <button onClick={onBack}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur font-mono text-xs uppercase"
+                    style={{ color: v.color }}>
+              <ChevronLeft size={16} /> Vocales
+            </button>
+            <div className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/60 backdrop-blur" style={{ color: v.color }}>
+              {[0,1,2].map(i => <Star key={i} size={14} fill={v.color} />)}
+            </div>
+          </div>
+          <div className="relative flex items-center justify-center pt-6 pb-4">
+            <div className="font-display font-bold leading-none select-none animate-pop-in"
+                 style={{ color: v.color, fontSize: "clamp(11rem, 38vw, 18rem)" }}>{v.letter}</div>
+            <button onClick={() => speak(`${v.letter}, ${v.letter}, ${v.letter}`, { rate: 0.7 })}
+                    className="absolute right-6 bottom-4 w-14 h-14 rounded-full flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform"
+                    style={{ background: v.color, boxShadow: `0 6px 20px ${v.color}60` }}>
+              <Volume2 size={24} />
+            </button>
+          </div>
+          <div className="text-center mb-8">
+            <div className="font-display italic text-3xl" style={{ color: v.color }}>{v.personality}</div>
+          </div>
+          <div className="px-6 max-w-2xl mx-auto">
+            <div className="font-mono text-xs uppercase mb-3" style={{ color: v.color }}>Palabras con {v.letter}</div>
+            <div className="rounded-3xl bg-white/60 backdrop-blur p-6 mb-6">
+              <div key={idx} className="text-center animate-float-in">
+                <div className="text-9xl mb-3" style={{lineHeight:1}}>{item.e}</div>
+                <div className="font-display font-bold text-4xl" style={{ color: v.color }}>
+                  <span className="underline decoration-4 underline-offset-4">{item.w[0]}</span>{item.w.slice(1)}
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-5">
+                <button onClick={() => setIdx((idx - 1 + v.items.length) % v.items.length)}
+                        className="w-10 h-10 rounded-full bg-white flex items-center justify-center" style={{ color: v.color }}>
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={() => speak(item.w, { rate: 0.8 })}
+                        className="px-5 py-2.5 rounded-full text-white text-sm font-medium flex items-center gap-2"
+                        style={{ background: v.color }}>
+                  <Volume2 size={16} /> Escuchar
+                </button>
+                <button onClick={() => setIdx((idx + 1) % v.items.length)}
+                        className="w-10 h-10 rounded-full bg-white flex items-center justify-center" style={{ color: v.color }}>
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+              <div className="flex justify-center gap-1.5 mt-4">
+                {v.items.map((_, i) => (
+                  <div key={i} className="h-1.5 rounded-full transition-all"
+                       style={{ width: i === idx ? 24 : 6, background: i === idx ? v.color : `${v.color}40` }} />
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => openGame("trazar", letter)}
+                      className="rounded-2xl p-5 text-left transition-transform hover:scale-105 active:scale-95"
+                      style={{ background: v.color, color: "white" }}>
+                <Pencil size={24} />
+                <div className="font-display text-lg font-semibold mt-2">Trazar la {v.letter}</div>
+                <div className="text-xs opacity-70 font-mono uppercase mt-1">Dibuja con el dedo</div>
+              </button>
+              <button onClick={() => openGame("encontrar", letter)}
+                      className="rounded-2xl p-5 text-left transition-transform hover:scale-105 active:scale-95 border-2"
+                      style={{ borderColor: v.color, color: v.color }}>
+                <Target size={24} />
+                <div className="font-display text-lg font-semibold mt-2">Encuentra la {v.letter}</div>
+                <div className="text-xs opacity-70 font-mono uppercase mt-1">Caza las palabras</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== JUEGOS TAB ===================== */
+    function JuegosTab({ openGame }) {
+      return (
+        <div className="min-h-full pb-24 px-6 pt-10 max-w-2xl mx-auto">
+          <div className="font-mono text-xs uppercase mb-3" style={{ color: "#8A7E6B" }}>Jugar y practicar</div>
+          <h2 className="font-display font-bold text-4xl mb-2 leading-tight">
+            Dos juegos para <span style={{fontStyle:"italic",fontWeight:400}}>aprender.</span>
+          </h2>
+          <p className="text-sm mb-8" style={{ color: "#5C5345" }}>
+            Escoge un juego y luego escoge la vocal con la que quieres jugar.
+          </p>
+          <div className="space-y-4">
+            <GameTile color="#E85D2F" icon={<Pencil size={28}/>} title="Trazar la letra"
+                      desc="Pasa el dedo por la vocal y dibújala completa."
+                      onPick={(L) => openGame("trazar", L)} />
+            <GameTile color="#4F7C5E" icon={<Target size={28}/>} title="Caza-vocales"
+                      desc="Encuentra los objetos que empiezan con cada vocal."
+                      onPick={(L) => openGame("encontrar", L)} />
+          </div>
+        </div>
+      );
+    }
+
+    function GameTile({ color, icon, title, desc, onPick }) {
+      return (
+        <div className="rounded-3xl p-5" style={{ background: "white", boxShadow: "0 4px 24px rgba(0,0,0,0.04)" }}>
+          <div className="flex items-start gap-4 mb-4">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white flex-shrink-0"
+                 style={{ background: color }}>{icon}</div>
+            <div>
+              <div className="font-display text-xl font-semibold leading-tight">{title}</div>
+              <div className="text-sm mt-1" style={{ color: "#5C5345" }}>{desc}</div>
+            </div>
+          </div>
+          <div className="font-mono text-[10px] uppercase mb-2" style={{ color: "#8A7E6B" }}>Empezar con</div>
+          <div className="flex gap-2">
+            {VOWELS.map((v) => (
+              <button key={v.letter} onClick={() => onPick(v.letter)}
+                      className="flex-1 aspect-square rounded-xl font-display font-bold text-2xl transition-transform hover:scale-110 active:scale-95"
+                      style={{ background: v.light, color: v.color }}>
+                {v.letter}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== GAME: TRAZAR ===================== */
+    function GameTrazar({ letter, onBack }) {
+      const v = VOWELS.find(x => x.letter === letter);
+      const canvasRef = useRef(null);
+      const [drawing, setDrawing] = useState(false);
+      const [drawCount, setDrawCount] = useState(0);
+      const [done, setDone] = useState(false);
+      const lastPos = useRef(null);
+
+      useEffect(() => {
+        const c = canvasRef.current;
+        if (!c) return;
+        c.width = 600; c.height = 600;
+      }, []);
+      useEffect(() => { if (done) speak(`¡Muy bien! Trazaste la ${v.letter}.`, { rate: 0.9 }); }, [done]);
+
+      const getPos = (e) => {
+        const c = canvasRef.current;
+        const r = c.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+        return { x: x * (c.width / r.width), y: y * (c.height / r.height) };
+      };
+      const draw = (p, isStart) => {
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.strokeStyle = v.color;
+        ctx.lineWidth = 26; ctx.lineCap = "round"; ctx.lineJoin = "round";
+        if (isStart) { ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+        else if (lastPos.current) {
+          ctx.beginPath(); ctx.moveTo(lastPos.current.x, lastPos.current.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+        }
+        lastPos.current = p;
+        setDrawCount((c) => c + 1);
+      };
+      const start = (e) => { e.preventDefault(); setDrawing(true); draw(getPos(e), true); };
+      const move = (e) => { if (!drawing) return; e.preventDefault(); draw(getPos(e), false); };
+      const end = () => setDrawing(false);
+      const clear = () => {
+        const c = canvasRef.current; c.getContext("2d").clearRect(0,0,c.width,c.height);
+        setDrawCount(0); setDone(false);
+      };
+
+      return (
+        <div className="min-h-screen pb-8" style={{ background: v.light }}>
+          <div className="px-5 pt-5 flex items-center justify-between">
+            <button onClick={onBack}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur font-mono text-xs uppercase"
+                    style={{ color: v.color }}>
+              <ChevronLeft size={16} /> Volver
+            </button>
+            <div className="font-mono text-xs uppercase" style={{ color: v.color }}>Traza la letra</div>
+            <div style={{width:80}}></div>
+          </div>
+          <div className="px-6 pt-4 max-w-md mx-auto">
+            <h3 className="font-display font-semibold text-3xl text-center mb-2">
+              Pasa el dedo por la <span style={{fontStyle:"italic",color:v.color}}>{v.letter}</span>
+            </h3>
+            <p className="text-sm text-center mb-6" style={{ color: "#5C5345" }}>
+              Empieza arriba y sigue todo el camino de la letra.
+            </p>
+            <div className="relative rounded-3xl overflow-hidden touch-none"
+                 style={{ background: "white", aspectRatio: "1/1", boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+                   style={{ fontFamily: "'Fraunces', serif", fontSize: "28rem", fontWeight: 900,
+                            color: "transparent", WebkitTextStroke: `4px ${v.color}40`, lineHeight: 1 }}>
+                {v.letter}
+              </div>
+              <canvas ref={canvasRef}
+                      className="absolute inset-0 w-full h-full"
+                      onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
+                      onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
+            </div>
+            <StarBurst show={done} count={3} />
+            <div className="flex gap-3 mt-6">
+              <button onClick={clear}
+                      className="flex-1 py-3 rounded-full bg-white font-medium flex items-center justify-center gap-2"
+                      style={{ color: v.color }}>
+                <Eraser size={18}/> Borrar
+              </button>
+              <button onClick={() => setDone(true)} disabled={drawCount < 50}
+                      className="flex-1 py-3 rounded-full text-white font-medium flex items-center justify-center gap-2 disabled:opacity-40"
+                      style={{ background: v.color }}>
+                <Check size={18}/> ¡Listo!
+              </button>
+            </div>
+            <div className="text-center mt-4 text-xs font-mono uppercase" style={{ color: "#8A7E6B" }}>
+              {drawCount < 50 ? "Dibuja un poco más..." : done ? "¡Excelente trabajo!" : "Toca '¡Listo!' cuando termines"}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== GAME: ENCONTRAR ===================== */
+    function GameEncontrar({ letter, onBack }) {
+      const v = VOWELS.find(x => x.letter === letter);
+      const [round, setRound] = useState(0);
+      const [score, setScore] = useState(0);
+      const [tapped, setTapped] = useState({});
+      const [finished, setFinished] = useState(false);
+
+      const items = useMemo(() => {
+        const targets = shuffle(v.items).slice(0, 3);
+        const distract = shuffle(DISTRACTORS).slice(0, 3);
+        return shuffle([
+          ...targets.map(t => ({...t, correct: true})),
+          ...distract.map(d => ({...d, correct: false})),
+        ]);
+      }, [round, letter]);
+
+      const correctCount = items.filter(i => i.correct).length;
+      const foundCount = Object.values(tapped).filter(t => t === "correct").length;
+
+      useEffect(() => {
+        speak(`Toca las palabras que empiezan con la ${v.letter}.`, { rate: 0.9 });
+        setTapped({});
+      }, [round, letter]);
+
+      useEffect(() => {
+        if (foundCount === correctCount && correctCount > 0) {
+          setTimeout(() => { setScore(s => s + correctCount); setFinished(true); speak(`¡Muy bien!`, { rate: 1 }); }, 600);
+        }
+      }, [foundCount, correctCount]);
+
+      const tap = (i, item) => {
+        if (tapped[i]) return;
+        if (item.correct) { setTapped(t => ({ ...t, [i]: "correct" })); speak(item.w, { rate: 0.8 }); }
+        else { setTapped(t => ({ ...t, [i]: "wrong" }));
+               setTimeout(() => setTapped(t => { const c = {...t}; delete c[i]; return c; }), 700); }
+      };
+      const nextRound = () => { setFinished(false); setRound(r => r + 1); };
+
+      return (
+        <div className="min-h-screen pb-8" style={{ background: v.light }}>
+          <div className="px-5 pt-5 flex items-center justify-between">
+            <button onClick={onBack}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur font-mono text-xs uppercase"
+                    style={{ color: v.color }}>
+              <ChevronLeft size={16} /> Volver
+            </button>
+            <div className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/60 backdrop-blur font-mono text-xs"
+                 style={{ color: v.color }}>
+              <Star size={12} fill={v.color} /> {score}
+            </div>
+          </div>
+          <div className="px-6 pt-4 max-w-2xl mx-auto">
+            <h3 className="font-display font-semibold text-3xl text-center mb-6">
+              Encuentra las palabras<br />
+              que empiezan con <span style={{fontStyle:"italic",color:v.color}}>{v.letter}</span>
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              {items.map((it, i) => {
+                const status = tapped[i];
+                return (
+                  <button key={i} onClick={() => tap(i, it)} disabled={status === "correct"}
+                          className="aspect-square rounded-3xl flex flex-col items-center justify-center transition-all"
+                          style={{ background: status === "correct" ? "#A8D5BA"
+                                              : status === "wrong" ? "#F5A5A5" : "white",
+                                   opacity: status === "correct" ? 0.85 : 1,
+                                   animation: status === "wrong" ? "wiggle 0.4s" : undefined,
+                                   boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
+                    <div className="text-5xl mb-1" style={{lineHeight:1}}>{it.e}</div>
+                    <div className="font-display font-semibold text-sm" style={{ color: "#1A1612" }}>{it.w}</div>
+                    {status === "correct" && <Check size={20} className="mt-1" style={{color:"#2D6B4D"}} />}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-center mt-6 font-mono text-xs uppercase" style={{ color: "#8A7E6B" }}>
+              Encontradas: {foundCount} / {correctCount}
+            </div>
+            {finished && (
+              <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-6">
+                <div className="bg-white rounded-3xl p-8 max-w-sm text-center animate-pop-in">
+                  <StarBurst show={true} count={3} />
+                  <h4 className="font-display text-3xl font-bold mt-4 mb-2">¡Muy bien!</h4>
+                  <p className="text-sm mb-6" style={{ color: "#5C5345" }}>Encontraste todas las palabras con {v.letter}.</p>
+                  <div className="flex gap-3">
+                    <button onClick={onBack}
+                            className="flex-1 py-3 rounded-full border-2 font-medium"
+                            style={{ borderColor: "#5C5345", color: "#5C5345" }}>Salir</button>
+                    <button onClick={nextRound}
+                            className="flex-1 py-3 rounded-full text-white font-medium"
+                            style={{ background: v.color }}>Otra ronda</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== CAMERA (AR) ===================== */
+    function CamaraTab() {
+      const videoRef = useRef(null);
+      const streamRef = useRef(null);
+      const [cameraError, setCameraError] = useState(null);
+      const [activeVowel, setActiveVowel] = useState(null);
+      const [cameraReady, setCameraReady] = useState(false);
+
+      useEffect(() => {
+        let cancelled = false;
+        (async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: "environment" }, audio: false,
+            });
+            if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+            streamRef.current = stream;
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+              videoRef.current.onloadedmetadata = () => { videoRef.current.play(); setCameraReady(true); };
+            }
+          } catch (e) { setCameraError(e.message || "No se pudo acceder a la cámara."); }
+        })();
+        return () => {
+          cancelled = true;
+          if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+          stopSpeaking();
+        };
+      }, []);
+
+      useEffect(() => {
+        if (!activeVowel) return;
+        const v = VOWELS.find(x => x.letter === activeVowel);
+        speak(`${v.letter}, de ${v.personality}. ${v.items[0].w}.`, { rate: 0.85 });
+        const t = setTimeout(() => setActiveVowel(null), 4500);
+        return () => clearTimeout(t);
+      }, [activeVowel]);
+
+      const v = activeVowel ? VOWELS.find(x => x.letter === activeVowel) : null;
+
+      return (
+        <div className="min-h-full pb-24 bg-black text-white relative">
+          <div className="absolute top-0 left-0 right-0 z-10 px-5 pt-5 flex items-center justify-between">
+            <div className="px-3 py-1.5 rounded-full bg-black/50 backdrop-blur font-mono text-xs uppercase">
+              Realidad aumentada
+            </div>
+          </div>
+          <div className="relative" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
+            {!cameraError ? (
+              <video ref={videoRef} playsInline muted
+                     className="absolute inset-0 w-full h-full object-cover"
+                     style={{ background: "#0a0a0a" }} />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-center px-6">
+                <div className="max-w-md">
+                  <Camera size={48} className="mx-auto mb-4 opacity-50" />
+                  <h3 className="font-display text-2xl mb-2">Cámara no disponible</h3>
+                  <p className="text-sm opacity-70 mb-4">{cameraError}</p>
+                  <p className="text-xs opacity-50 font-mono uppercase">
+                    Funciona en https:// o localhost. Toca una vocal para ver la animación.
+                  </p>
+                </div>
+              </div>
+            )}
+            {cameraReady && !activeVowel && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="text-center">
+                  <div className="inline-block px-4 py-2 rounded-full bg-black/60 backdrop-blur-md text-sm font-mono uppercase">
+                    Apunta a la tarjeta y toca la vocal
+                  </div>
+                  <div className="mt-6 mx-auto w-64 h-64 border-2 border-white/30 rounded-2xl relative">
+                    {["top-0 left-0","top-0 right-0","bottom-0 left-0","bottom-0 right-0"].map((pos) => (
+                      <div key={pos} className={`absolute ${pos} w-6 h-6 border-white`}
+                           style={{ borderTopWidth: pos.includes("top") ? 3 : 0,
+                                    borderBottomWidth: pos.includes("bottom") ? 3 : 0,
+                                    borderLeftWidth: pos.includes("left") ? 3 : 0,
+                                    borderRightWidth: pos.includes("right") ? 3 : 0 }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {v && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="absolute inset-0"
+                     style={{ background: `radial-gradient(circle at center, ${v.color}66 0%, transparent 60%)` }} />
+                <div className="text-center animate-pop-in relative">
+                  <div className="font-display"
+                       style={{ color: v.color, fontSize: "clamp(10rem, 28vw, 22rem)", fontWeight: 700,
+                                lineHeight: 1, textShadow: `0 8px 40px ${v.color}, 0 0 80px ${v.color}80`,
+                                WebkitTextStroke: `2px white` }}>
+                    {v.letter}
+                  </div>
+                  <div className="font-display italic mt-2"
+                       style={{ color: "white", fontSize: "clamp(1.5rem, 5vw, 3rem)", fontWeight: 400,
+                                textShadow: `0 4px 24px ${v.color}`, animation: "float-in 0.8s 0.3s both" }}>
+                    {v.personality}
+                  </div>
+                  {[0,1,2,3,4,5,6].map((i) => (
+                    <div key={i} className="absolute drift text-4xl"
+                         style={{ color: v.color, left: `${Math.random()*100}%`, top: "60%",
+                                  animationDelay: `${i*0.2}s`, textShadow: `0 0 20px ${v.color}` }}>
+                      {v.decoration}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="px-4 pt-4 pb-2">
+            <div className="text-center text-xs font-mono uppercase opacity-60 mb-3">Toca una vocal</div>
+            <div className="flex items-center justify-between gap-2 max-w-2xl mx-auto">
+              {VOWELS.map((vv) => (
+                <button key={vv.letter} onClick={() => setActiveVowel(vv.letter)}
+                        className="flex-1 aspect-square rounded-2xl font-display font-bold text-3xl md:text-5xl transition-all hover:scale-110 active:scale-95"
+                        style={{ background: vv.color, color: "white",
+                                 boxShadow: activeVowel === vv.letter
+                                   ? `0 0 40px ${vv.color}, 0 0 80px ${vv.color}80`
+                                   : `0 4px 20px ${vv.color}40` }}>
+                  {vv.letter}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== DOCENTE TAB ===================== */
+    function DocenteTab({ goTeacherSub }) {
+      const sections = [
+        { key: "exploration", n: "i",   time: "10 min", label: "Exploración",  title: "Lluvia de ideas guiada",      color: "#E85D2F" },
+        { key: "learning",    n: "ii",  time: "15 min", label: "Aprendizaje",  title: "Video animado en la app",     color: "#1E3A5F" },
+        { key: "practice",    n: "iii", time: "20 min", label: "Práctica",     title: "Realidad aumentada en mano",  color: "#4F7C5E" },
+      ];
+      const extras = [
+        { key: "evidence", label: "Grabar evidencia", desc: "Video del estudiante (1-2 min)", I: Video },
+        { key: "cards",    label: "Tarjetas físicas", desc: "Imprimir en A4",                  I: Printer },
+      ];
+      return (
+        <div className="min-h-full pb-24 px-6 pt-10 max-w-2xl mx-auto">
+          <div className="font-mono text-xs uppercase mb-3" style={{ color: "#8A7E6B" }}>
+            Modo docente · 45 min
+          </div>
+          <h2 className="font-display font-bold text-4xl mb-2 leading-tight">
+            Tres momentos<br />
+            <span style={{fontStyle:"italic",fontWeight:400}}>en una sesión.</span>
+          </h2>
+          <p className="text-sm mb-8" style={{ color: "#5C5345" }}>
+            Salta directamente a un momento o usa los recursos complementarios.
+          </p>
+          <div className="space-y-3 mb-6">
+            {sections.map((s) => (
+              <button key={s.key} onClick={() => goTeacherSub(s.key)}
+                      className="w-full group flex items-center gap-4 px-5 py-5 rounded-2xl bg-white/60 hover:bg-white transition-all text-left">
+                <div className="font-display italic text-3xl w-10" style={{ color: s.color }}>{s.n}.</div>
+                <div className="flex-1">
+                  <div className="font-mono text-[10px] uppercase mb-1" style={{ color: s.color }}>
+                    {s.label} · {s.time}
+                  </div>
+                  <div className="font-display text-lg font-semibold leading-tight">{s.title}</div>
+                </div>
+                <ChevronRight className="opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition-all" size={20} />
+              </button>
+            ))}
+          </div>
+          <div className="font-mono text-xs uppercase mb-3" style={{ color: "#8A7E6B" }}>Recursos</div>
+          <div className="grid grid-cols-1 gap-3">
+            {extras.map((e) => (
+              <button key={e.key} onClick={() => goTeacherSub(e.key)}
+                      className="px-5 py-4 rounded-2xl border-2 text-left flex items-center gap-4 hover:bg-white/50 transition-colors"
+                      style={{ borderColor: "rgba(0,0,0,0.12)" }}>
+                <e.I size={22} />
+                <div className="flex-1">
+                  <div className="font-display text-base font-semibold">{e.label}</div>
+                  <div className="text-xs" style={{ color: "#5C5345" }}>{e.desc}</div>
+                </div>
+                <ChevronRight size={18} className="opacity-30" />
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== TEACHER SUB-SCREENS ===================== */
+    function TeacherTopBar({ label, step, total, onHome, accent }) {
+      return (
+        <div className="w-full px-5 py-4 flex items-center justify-between border-b"
+             style={{ background: "#F5EFE4", borderColor: "rgba(0,0,0,0.08)" }}>
+          <button onClick={onHome} className="flex items-center gap-2 text-sm font-mono uppercase hover:opacity-60"
+                  style={{ color: "#5C5345" }}>
+            <ChevronLeft size={14} /> Docente
+          </button>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xs uppercase" style={{ color: accent ?? "#5C5345" }}>{label}</span>
+            {total && <span className="font-mono text-xs" style={{ color: "#8A7E6B" }}>{step}/{total}</span>}
+          </div>
+        </div>
+      );
+    }
+
+    function ExplorationScreen({ onComplete, onHome }) {
+      const [idx, setIdx] = useState(0);
+      const v = VOWELS[idx];
+      useEffect(() => {
+        const t = setTimeout(() => speak(`La vocal ${v.letter}. ¿Qué objetos ves que empiezan con ${v.letter}?`), 400);
+        return () => { clearTimeout(t); stopSpeaking(); };
+      }, [idx]);
+      return (
+        <div className="min-h-screen flex flex-col" style={{ background: v.light }}>
+          <TeacherTopBar label="01 · Exploración" step={idx+1} total={VOWELS.length} onHome={onHome} accent={v.color} />
+          <div key={idx} className="flex-1 flex flex-col items-center justify-center px-6 py-8 animate-float-in">
+            <div className="font-display font-bold leading-none animate-pop-in mb-6"
+                 style={{ color: v.color, fontSize: "clamp(10rem, 26vw, 20rem)" }}>{v.letter}</div>
+            <div className="text-center max-w-lg">
+              <div className="font-mono text-xs uppercase mb-3" style={{ color: v.color }}>Lluvia de ideas</div>
+              <h2 className="font-display font-semibold mb-4" style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)" }}>
+                ¿Qué objetos ves que empiezan con la letra {v.letter}?
+              </h2>
+              <button onClick={() => speak(`¿Qué objetos ves que empiezan con la letra ${v.letter}?`)}
+                      className="inline-flex items-center gap-2 px-5 py-3 rounded-full border-2 font-medium"
+                      style={{ borderColor: v.color, color: v.color }}>
+                <Volume2 size={18} /> Escuchar de nuevo
+              </button>
+            </div>
+          </div>
+          <div className="px-6 py-4 flex items-center justify-between border-t" style={{ borderColor: "rgba(0,0,0,0.08)" }}>
+            <button onClick={() => { stopSpeaking(); if (idx > 0) setIdx(idx-1); }} disabled={idx === 0}
+                    className="px-4 py-2.5 rounded-full font-medium disabled:opacity-30" style={{ color: "#5C5345" }}>
+              ← Anterior
+            </button>
+            <div className="flex gap-2">
+              {VOWELS.map((vv, i) => (
+                <div key={vv.letter} className="h-2 rounded-full"
+                     style={{ width: i === idx ? 28 : 8, background: i === idx ? v.color : "rgba(0,0,0,0.15)" }} />
+              ))}
+            </div>
+            <button onClick={() => { stopSpeaking(); idx < VOWELS.length - 1 ? setIdx(idx+1) : onComplete(); }}
+                    className="px-5 py-2.5 rounded-full text-white font-medium" style={{ background: v.color }}>
+              {idx === VOWELS.length - 1 ? "Terminar" : "Siguiente →"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function LearningScreen({ onComplete, onHome }) {
+      const [idx, setIdx] = useState(0);
+      const [playing, setPlaying] = useState(true);
+      const v = VOWELS[idx];
+      useEffect(() => {
+        if (!playing) { stopSpeaking(); return; }
+        const phrase = `La ${v.letter}, de ${v.personality}. ${v.letter}, ${v.letter}, ${v.letter}. ${v.items[0].w}. ${v.items[1].w}.`;
+        const t = setTimeout(() => speak(phrase), 500);
+        const advance = setTimeout(() => {
+          if (idx < VOWELS.length - 1) setIdx(idx+1); else setPlaying(false);
+        }, 9500);
+        return () => { clearTimeout(t); clearTimeout(advance); stopSpeaking(); };
+      }, [idx, playing]);
+      return (
+        <div className="min-h-screen flex flex-col" style={{ background: "#1A1612" }}>
+          <TeacherTopBar label="02 · Aprendizaje" step={idx+1} total={VOWELS.length} onHome={onHome} accent={v.color} />
+          <div className="flex-1 relative" style={{minHeight:380}}>
+            <div className="relative w-full h-full flex items-center justify-center overflow-hidden"
+                 style={{ background: v.light }}>
+              {playing && [0,1,2,3,4].map((i) => (
+                <div key={i} className="absolute drift font-display"
+                     style={{ left: `${10+i*18}%`, bottom: 0, color: v.color, fontSize: "2.5rem",
+                              opacity: 0.25, animationDelay: `${i*0.4}s`, animationIterationCount: "infinite" }}>
+                  {v.decoration}
+                </div>
+              ))}
+              <div className={`font-display select-none ${playing ? "animate-pop-in" : ""}`}
+                   style={{ color: v.color, fontSize: "clamp(8rem, 26vw, 18rem)", fontWeight: 700, lineHeight: 1 }}>
+                {v.letter}
+              </div>
+              <div className="absolute font-display italic"
+                   style={{ color: v.color, fontSize: "clamp(1.8rem, 4vw, 3rem)", bottom: "18%", right: "8%",
+                            fontWeight: 400, animation: playing ? "float-in 0.8s 0.6s both" : "none" }}>
+                {v.personality}
+              </div>
+            </div>
+            {!playing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="text-center text-white">
+                  <h3 className="font-display text-3xl mb-4">{idx === VOWELS.length-1 ? "Terminado" : "Pausa"}</h3>
+                  <button onClick={idx === VOWELS.length-1 ? onComplete : () => setPlaying(true)}
+                          className="px-7 py-3 bg-white text-black rounded-full font-medium">
+                    {idx === VOWELS.length-1 ? "Continuar →" : "Reanudar"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="px-5 py-4 flex items-center justify-between" style={{ background: "#0F0C0A" }}>
+            <button onClick={() => { stopSpeaking(); if (idx>0) setIdx(idx-1); }} disabled={idx===0}
+                    className="text-white/70 disabled:opacity-30"><ChevronLeft size={24}/></button>
+            <button onClick={() => setPlaying(p => { if (p) stopSpeaking(); return !p; })}
+                    className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center">
+              {playing ? <Pause size={20}/> : <Play size={20} fill="black"/>}
+            </button>
+            <div className="flex gap-2">
+              {VOWELS.map((vv, i) => (
+                <button key={vv.letter} onClick={() => { stopSpeaking(); setIdx(i); setPlaying(true); }}
+                        className="w-7 h-7 rounded-full font-display font-bold text-xs"
+                        style={{ background: i===idx ? vv.color : "rgba(255,255,255,0.1)",
+                                 color: i===idx ? "white" : "rgba(255,255,255,0.5)" }}>
+                  {vv.letter}
+                </button>
+              ))}
+            </div>
+            <button onClick={onComplete} className="text-white/70 text-xs font-mono uppercase">Saltar →</button>
+          </div>
+        </div>
+      );
+    }
+
+    function EvidenceScreen({ onHome }) {
+      const videoRef = useRef(null);
+      const streamRef = useRef(null);
+      const recorderRef = useRef(null);
+      const chunksRef = useRef([]);
+      const [recording, setRecording] = useState(false);
+      const [elapsed, setElapsed] = useState(0);
+      const [recordedUrl, setRecordedUrl] = useState(null);
+      const [error, setError] = useState(null);
+      useEffect(() => {
+        let cancelled = false;
+        (async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: "user", width: 1280, height: 720 }, audio: true,
+            });
+            if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+            streamRef.current = stream;
+            if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); }
+          } catch (e) { setError("No se pudo acceder a cámara/micrófono. " + (e.message || "")); }
+        })();
+        return () => {
+          cancelled = true;
+          if (recorderRef.current && recorderRef.current.state !== "inactive") recorderRef.current.stop();
+          if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+        };
+      }, []);
+      useEffect(() => {
+        if (!recording) return;
+        const i = setInterval(() => setElapsed(e => e+1), 1000);
+        return () => clearInterval(i);
+      }, [recording]);
+      const startRec = () => {
+        if (!streamRef.current) return;
+        chunksRef.current = []; setRecordedUrl(null); setElapsed(0);
+        const rec = new MediaRecorder(streamRef.current, { mimeType: "video/webm" });
+        rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunksRef.current.push(e.data); };
+        rec.onstop = () => { setRecordedUrl(URL.createObjectURL(new Blob(chunksRef.current, { type: "video/webm" }))); };
+        rec.start(); recorderRef.current = rec; setRecording(true);
+      };
+      const stopRec = () => {
+        if (recorderRef.current && recorderRef.current.state !== "inactive") recorderRef.current.stop();
+        setRecording(false);
+      };
+      const mmss = (s) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+      return (
+        <div className="min-h-screen pb-8" style={{ background: "#F5EFE4" }}>
+          <TeacherTopBar label="Evidencia de aprendizaje" onHome={onHome} accent="#B5391E" />
+          <div className="px-5 py-6 max-w-3xl mx-auto">
+            <div className="font-mono text-xs uppercase mb-2" style={{ color: "#5C5345" }}>Video · 1 a 2 minutos</div>
+            <h2 className="font-display text-2xl md:text-3xl font-semibold mb-3">Graba al estudiante nombrando cada vocal.</h2>
+            {error ? (
+              <div className="p-5 rounded-2xl bg-white/60 text-sm" style={{ color: "#B5391E" }}>{error}</div>
+            ) : (
+              <div className="space-y-5">
+                <div className="relative rounded-2xl overflow-hidden bg-black aspect-video"
+                     style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.15)" }}>
+                  {!recordedUrl ? (
+                    <>
+                      <video ref={videoRef} playsInline muted className="w-full h-full object-cover" style={{ transform: "scaleX(-1)" }} />
+                      {recording && (
+                        <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-mono">
+                          <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                          REC · {mmss(elapsed)}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <video src={recordedUrl} controls className="w-full h-full object-cover" />
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  {!recordedUrl && !recording && (
+                    <button onClick={startRec} className="flex items-center gap-2 px-7 py-3 rounded-full text-white font-medium" style={{ background: "#B5391E" }}>
+                      <Video size={18}/> Iniciar grabación
+                    </button>
+                  )}
+                  {recording && (
+                    <button onClick={stopRec} className="flex items-center gap-2 px-7 py-3 rounded-full bg-black text-white font-medium">
+                      <StopCircle size={18}/> Detener
+                    </button>
+                  )}
+                  {recordedUrl && (
+                    <>
+                      <a href={recordedUrl} download={`evidencia-vocales-${Date.now()}.webm`}
+                         className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium" style={{ background: "#1A1612" }}>
+                        <Download size={18}/> Descargar
+                      </a>
+                      <button onClick={() => { setRecordedUrl(null); setElapsed(0); }}
+                              className="flex items-center gap-2 px-6 py-3 rounded-full border-2 font-medium"
+                              style={{ borderColor: "#5C5345", color: "#5C5345" }}>
+                        <RotateCcw size={18}/> Grabar de nuevo
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function CardsScreen({ onHome }) {
+      return (
+        <div className="min-h-screen pb-8" style={{ background: "#F5EFE4" }}>
+          <div className="no-print">
+            <TeacherTopBar label="Tarjetas físicas" onHome={onHome} />
+            <div className="px-5 py-4 max-w-5xl mx-auto flex items-center justify-between flex-wrap gap-3">
+              <p className="text-sm" style={{ color: "#5C5345" }}>Imprime en cartulina A4 y plastifica.</p>
+              <button onClick={() => window.print()}
+                      className="flex items-center gap-2 px-5 py-3 rounded-full text-white font-medium"
+                      style={{ background: "#1A1612" }}>
+                <Printer size={18}/> Imprimir
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5 px-5 pb-12 max-w-5xl mx-auto">
+            {VOWELS.map((v) => (
+              <div key={v.letter}
+                   className="aspect-[3/4] rounded-3xl p-5 flex flex-col items-center justify-between relative overflow-hidden"
+                   style={{ background: v.light, border: `3px solid ${v.color}` }}>
+                <div className="absolute top-2 left-3 font-mono text-[10px] uppercase" style={{ color: v.color }}>MetAClass</div>
+                <div className="absolute top-2 right-3 font-mono text-[10px] uppercase" style={{ color: v.color }}>{v.letter}/{VOWELS.length}</div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="font-display font-bold leading-none" style={{ color: v.color, fontSize: "7.5rem" }}>
+                    {v.letter}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="font-display italic mb-1" style={{ color: v.color, fontSize: "1.2rem" }}>{v.personality}</div>
+                  <div className="font-mono text-[10px] uppercase opacity-60" style={{ color: v.color }}>
+                    {v.items.slice(0,3).map(i=>i.w).join(" · ")}
+                  </div>
+                </div>
+                <div className="absolute -bottom-6 -right-6 text-7xl opacity-20" style={{ color: v.color }}>{v.decoration}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== ROOT ===================== */
+    function App() {
+      const [tab, setTab] = useState("home");
+      const [vocalDetail, setVocalDetail] = useState(null);
+      const [game, setGame] = useState(null);
+      const [teacherSub, setTeacherSub] = useState(null);
+
+      useEffect(() => {
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.getVoices();
+          window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        }
+      }, []);
+
+      const switchTab = (t) => {
+        setVocalDetail(null); setGame(null); setTeacherSub(null);
+        setTab(t);
+      };
+      const openVowel = (L) => { setTab("vocales"); setVocalDetail(L); };
+      const openGame = (type, letter) => setGame({ type, letter });
+
+      if (game) {
+        if (game.type === "trazar") return <GameTrazar letter={game.letter} onBack={() => setGame(null)} />;
+        if (game.type === "encontrar") return <GameEncontrar letter={game.letter} onBack={() => setGame(null)} />;
+      }
+      if (teacherSub) {
+        const homeTeacher = () => setTeacherSub(null);
+        if (teacherSub === "exploration") return <ExplorationScreen onComplete={() => setTeacherSub("learning")} onHome={homeTeacher} />;
+        if (teacherSub === "learning")    return <LearningScreen onComplete={() => { setTeacherSub(null); setTab("camara"); }} onHome={homeTeacher} />;
+        if (teacherSub === "practice")    { setTab("camara"); setTeacherSub(null); return null; }
+        if (teacherSub === "evidence")    return <EvidenceScreen onHome={homeTeacher} />;
+        if (teacherSub === "cards")       return <CardsScreen onHome={homeTeacher} />;
+      }
+
+      return (
+        <div className="min-h-screen">
+          {tab === "home"    && <HomeTab setTab={switchTab} openVowel={openVowel} />}
+          {tab === "vocales" && (
+            vocalDetail
+              ? <VocalDetail letter={vocalDetail} onBack={() => setVocalDetail(null)} openGame={openGame} />
+              : <VocalesTab openVowel={(L) => setVocalDetail(L)} />
+          )}
+          {tab === "juegos"  && <JuegosTab openGame={openGame} />}
+          {tab === "camara"  && <CamaraTab />}
+          {tab === "docente" && <DocenteTab goTeacherSub={setTeacherSub} />}
+          <BottomNav tab={tab} setTab={switchTab} />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
